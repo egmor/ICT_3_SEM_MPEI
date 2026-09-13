@@ -3,7 +3,7 @@
 #include "queue.h"
 
 namespace Current_Date {
-    constexpr int day{ 7 };
+    constexpr int day{ 14 };
     constexpr int month{ 9 };
     constexpr int year{ 2026 };
 }
@@ -26,12 +26,8 @@ bool correct_date(Date_Last_Visit& date) {
 std::string to_lower(std::string str) {
     for (char& ch : str) {
         unsigned char uc = static_cast<unsigned char>(ch);
-        if (uc >= 192 && uc <= 223) {
-            ch = static_cast<char>(uc + 32);
-        }
-        else if (uc == 168) {
-            ch = static_cast<char>(184);
-        }
+        if (uc >= 192 && uc <= 223) ch = static_cast<char>(uc + 32);
+        else if (uc == 168)  ch = static_cast<char>(184);
     }
     return str;
 }
@@ -49,18 +45,12 @@ bool text_to_queue(const std::string& file_name, Queue& q) {
         >> temp.date.day >> temp.date.month >> temp.date.year
         >> temp.birth_year >> temp.illness) {
 
-        if (correct_date(temp.date)) {
-            push_queue(q, temp);
-        }
-        else {
-            ++skippedCount;
-        }
+        if (correct_date(temp.date)) push_queue(q, temp);
+        else ++skippedCount;
     }
 
     inFile.close();
-    if (skippedCount > 0) {
-        std::cout << "[Инфо] Пропущено некорректных записей: " << skippedCount << "\n";
-    }
+    if (skippedCount > 0) std::cout << "[Инфо] Пропущено некорректных записей: " << skippedCount << "\n";
 
     return q.size > 0;
 }
@@ -88,7 +78,7 @@ void table_sick_man(const Medical_Record& sick_man) {
         << "\n";
 }
 
-bool is_absent_over_3_months(const Date_Last_Visit& date) {
+bool over_3_months(const Date_Last_Visit& date) {
     int year_diff = Current_Date::year - date.year;
     int month_diff = Current_Date::month - date.month;
     int total_months = year_diff * 12 + month_diff;
@@ -152,7 +142,7 @@ int main() {
     while (current != nullptr) {
         push_queue(output_queue, current->data);
 
-        if (to_lower(current->data.illness) == "диабет" && is_absent_over_3_months(current->data.date)) {
+        if (to_lower(current->data.illness) == "диабет" && over_3_months(current->data.date)) {
             push_queue(diabet_queue, current->data);
         }
 
