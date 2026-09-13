@@ -1,43 +1,12 @@
-﻿#include <iostream>
-#include <string>
-#include <fstream>
-#include <algorithm>
-#include <windows.h>
-#include <format>
+﻿#include "doublelinkedlist.h"
+#include "sorting.h"
+#include "queue.h"
 
 namespace Current_Date {
     constexpr int day{ 7 };
     constexpr int month{ 9 };
     constexpr int year{ 2026 };
 }
-
-struct Patient {
-    std::string name{};
-    std::string surname{};
-    std::string last_name{};
-};
-
-struct Address {
-    std::string city{};
-    std::string district{};
-    std::string street{};
-    std::string building{};
-    std::string apartment{};
-};
-
-struct Date_Last_Visit {
-    int day{};
-    int month{};
-    int year{};
-};
-
-struct Medical_Record {
-    Patient SNL{};
-    Address address{};
-    Date_Last_Visit date{};
-    int birth_year{};
-    std::string illness{};
-};
 
 bool correct_day(int day, int month, int year) {
     if (day > 31 || day < 1) return false;
@@ -60,19 +29,18 @@ std::string to_lower(std::string str) {
         if (uc >= 192 && uc <= 223) {
             ch = static_cast<char>(uc + 32);
         }
-        else if (uc == 168) { // 'Ё'
-            ch = static_cast<char>(184); // 'ё'
+        else if (uc == 168) {
+            ch = static_cast<char>(184);
         }
     }
     return str;
 }
 
-bool text_to_file(const std::string& file_name, Medical_Record*& sick_mans, int& count) {
+bool text_to_queue(const std::string& file_name, Queue& q) {
     std::ifstream inFile(file_name);
     if (!inFile.is_open()) return false;
 
-    count = 0;
-    int skippedCount = 0;
+    int skippedCount{ 0 };
     Medical_Record temp;
 
     while (inFile >> temp.SNL.name >> temp.SNL.surname >> temp.SNL.last_name
@@ -82,48 +50,19 @@ bool text_to_file(const std::string& file_name, Medical_Record*& sick_mans, int&
         >> temp.birth_year >> temp.illness) {
 
         if (correct_date(temp.date)) {
-            count++;
+            push_queue(q, temp);
         }
         else {
-            skippedCount++;
-        }
-    }
-
-    if (count == 0) {
-        if (skippedCount > 0) std::cout << "[Инфо] Всего пропущено некорректных записей: " << skippedCount << "\n\n";
-        inFile.close();
-        return false;
-    }
-
-    sick_mans = new Medical_Record[count];
-
-    inFile.clear();
-    inFile.seekg(0, std::ios::beg);
-
-    int i = 0;
-    while (inFile >> temp.SNL.name >> temp.SNL.surname >> temp.SNL.last_name
-        >> temp.address.city >> temp.address.district >> temp.address.street
-        >> temp.address.building >> temp.address.apartment
-        >> temp.date.day >> temp.date.month >> temp.date.year
-        >> temp.birth_year >> temp.illness) {
-
-        if (correct_date(temp.date)) {
-            sick_mans[i++] = temp;
+            ++skippedCount;
         }
     }
 
     inFile.close();
-    if (skippedCount > 0) std::cout << "[Инфо] Всего пропущено некорректных записей: " << skippedCount << "\n\n";
-
-    return true;
-}
-
-int count_diabet(const Medical_Record* sick_man, int size) {
-    int diabet_count{ 0 };
-    for (int i{ 0 }; i < size; ++i) {
-        if (to_lower(sick_man[i].illness) == "диабет") ++diabet_count;
+    if (skippedCount > 0) {
+        std::cout << "[Инфо] Пропущено некорректных записей: " << skippedCount << "\n";
     }
-    return diabet_count;
+
+    return q.size > 0;
 }
 
 void up_table() {
@@ -149,64 +88,96 @@ void table_sick_man(const Medical_Record& sick_man) {
         << "\n";
 }
 
-void output_table(const Medical_Record* sick_man, int size) {
-    for (int i{ 0 }; i < size; ++i) table_sick_man(sick_man[i]);
-}
+bool is_absent_over_3_months(const Date_Last_Visit& date) {
+    int year_diff = Current_Date::year - date.year;
+    int month_diff = Current_Date::month - date.month;
+    int total_months = year_diff * 12 + month_diff;
 
-void output_table_diabet(const Medical_Record* sick_man, int size) {
-    for (int i{ 0 }; i < size; ++i) {
-        if ((std::abs(Current_Date::year - sick_man[i].date.year) >= 0) && (std::abs(Current_Date::month - sick_man[i].date.month) >= 3) &&
-            (std::abs(Current_Date::day - sick_man[i].date.day) > 0) && (to_lower(sick_man[i].illness) == "диабет")) {
-            table_sick_man(sick_man[i]);
-        }
-    }
-}
+    if (total_months > 3) return true;
+    if (total_months == 3 && Current_Date::day > date.day) return true;
 
-void sort_by_date(Medical_Record* sick_man, int size) {
-	std::sort(sick_man, sick_man + size, [](const Medical_Record& a, const Medical_Record& b) {
-		return a.date.year < b.date.year || (a.date.year == b.date.year && a.date.month < b.date.month) || (a.date.year == b.date.year && a.date.month == b.date.month && a.date.day < b.date.day);
-	});
+    return false;
 }
 
 int main() {
-
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
 
-    Medical_Record* patients = nullptr;
-    int patients_count = 0;
-	std::string filename = "patients.txt"; // полностью корректный файл с данными пациентов
-	// std::string filename = "empty_file_test.txt"; // тест пустым файлом
-	// std::string filename = "uncorrect_entry_file_test.txt"; // тест файлом с некорректными данными
-	// std::string filename = "file_with_DiAbEt.txt"; // проверка работа понижения регистра
+    std::string filename = "patients.txt";
 
-    std::cout << "Загрузка данных из текстового файла " << filename << "...\n";
-    if (!text_to_file(filename, patients, patients_count)) {
-        std::cerr << "[Ошибка] Не удалось загрузить данные из файла!\n";
+    Queue input_queue;
+    std::cout << "1. Чтение данных из файла в первичную очередь...\n";
+    if (!text_to_queue(filename, input_queue)) {
+        std::cerr << "[Ошибка] Не удалось загрузить данные в очередь!\n";
         return 1;
     }
-    
-    std::cout << "Успешно загружено корректных записей: " << patients_count << "\n\n";
-    
-    std::cout << "=== ИСХОДНЫЕ ДАННЫЕ ИЗ ФАЙЛА ===\n";
-	up_table();
-    output_table(patients, patients_count);
-    
-    std::cout << "\n\nСортировка данных по дате...";
-    sort_by_date(patients, patients_count);
-    
-    std::cout << "\n=== ОТСОРТИРОВАННАЯ ТАБЛИЦА ===\n";
+
+    DoublyLinkedList list;
+    Medical_Record temp_record;
+
+    std::cout << "\n=== ИСХОДНЫЕ ДАННЫЕ ИЗ ОЧЕРЕДИ (БЕЗ СОРТИРОВКИ) ===\n";
     up_table();
-    output_table(patients, patients_count);
 
-	int diabet_count = count_diabet(patients, patients_count);
-	std::cout << "\n\n Количество больных диабетом: " << diabet_count;
+    while (pop_queue(input_queue, temp_record)) {
+        table_sick_man(temp_record);
+        push_back(list, temp_record);
+    }
 
-	std::cout << "\n=== ПАЦИЕНТЫ С ДИАБЕТОМ, КОТОРЫХ НЕ БЫЛО > 3х МЕСЯЦЕВ ===\n";
+    int choice{ 0 };
+    std::cout << "\nВыберите вариант сортировки:\n"
+        << " 1. По ФИО\n"
+        << " 2. По году рождения\n"
+        << " 3. По адресу\n"
+        << " 4. По заболеванию\n"
+        << " 5. По дате посещения\n"
+        << " Введите номер: ";
+    std::cin >> choice;
+
+    switch (choice) {
+    case 1: sort_by_fio(list); break;
+    case 2: sort_by_birth_year(list); break;
+    case 3: sort_by_address(list); break;
+    case 4: sort_by_illness(list); break;
+    case 5: sort_by_date(list); break;
+    default:
+        std::cerr << "[Ошибка] Неверный выбор!\n";
+        clear_list(list);
+        return 1;
+    }
+
+    Queue output_queue;
+    Queue diabet_queue;
+
+    Node* current = list.head;
+    while (current != nullptr) {
+        push_queue(output_queue, current->data);
+
+        if (to_lower(current->data.illness) == "диабет" && is_absent_over_3_months(current->data.date)) {
+            push_queue(diabet_queue, current->data);
+        }
+
+        current = current->next;
+    }
+    clear_list(list);
+
+    std::cout << "\n=== ОТСОРТИРОВАННЫЙ СПИСОК (ИЗ ВЫХОДНОЙ ОЧЕРЕДИ) ===\n";
     up_table();
-	output_table_diabet(patients, patients_count);
 
-    delete[] patients;
+    Medical_Record printed_record;
+    while (pop_queue(output_queue, printed_record)) {
+        table_sick_man(printed_record);
+    }
+
+    std::cout << "\n=== ПАЦИЕНТЫ С ДИАБЕТОМ (НЕ БЫЛИ БОЛЕЕ 3 МЕСЯЦЕВ) ===\n";
+    if (diabet_queue.size == 0) {
+        std::cout << "Таких пациентов не найдено.\n";
+    }
+    else {
+        up_table();
+        while (pop_queue(diabet_queue, printed_record)) {
+            table_sick_man(printed_record);
+        }
+    }
 
     return 0;
 }
