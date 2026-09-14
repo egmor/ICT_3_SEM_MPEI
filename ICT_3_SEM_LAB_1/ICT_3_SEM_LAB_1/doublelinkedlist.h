@@ -58,4 +58,4 @@ void pop_index(DoublyLinkedList& list, int index);
 Node* get_node(DoublyLinkedList& list, int index);
 void clear_list(DoublyLinkedList& list);
 
-#endif
+#endif //DOUBLELINKEDLIST_H

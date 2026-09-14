@@ -10,4 +10,4 @@ void sort_by_address(DoublyLinkedList& list);
 void sort_by_illness(DoublyLinkedList& list);
 void sort_by_date(DoublyLinkedList& list);
 
-#endif
+#endif //SORTING_H

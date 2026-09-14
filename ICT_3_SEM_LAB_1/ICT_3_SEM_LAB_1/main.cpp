@@ -1,42 +1,12 @@
 ﻿#include "doublelinkedlist.h"
 #include "sorting.h"
 #include "queue.h"
+#include "correct.h"
 
 namespace Current_Date {
     constexpr int day{ 14 };
     constexpr int month{ 9 };
     constexpr int year{ 2026 };
-}
-
-bool correct_day(int day, int month, int year) {
-    if (day > 31 || day < 1) return false;
-    else if (day > 30 && (month == 4 || month == 6 || month == 9 || month == 11)) return false;
-    else if (day > 29 && month == 2 && (year % 4 == 0)) return false;
-    else if (day > 28 && month == 2 && (year % 4 != 0)) return false;
-    else return true;
-}
-
-bool correct_date(Date_Last_Visit& date) {
-    if (date.year <= 2000 || date.year > 2026) return false;
-    if (date.month > 12 || date.month < 1) return false;
-    if (!correct_day(date.day, date.month, date.year)) return false;
-    else return true;
-}
-
-bool correct_address(Address& data) {
-    if (data.city.size() < 2 || data.city.size() > 15) return false;
-    if (data.district.size() < 2 || data.district.size() > 10) return false;
-    if (data.street.size() < 2 || data.street.size() > 15) return false;
-    if (std::stoi(data.building) < 1 || std::stoi(data.building) > 150) return false;
-    if (std::stoi(data.apartment) < 1 || std::stoi(data.apartment) > 1000) return false;
-    else return true;
-}
-
-bool correct_name(Patient& data) {
-    if (data.name.size() < 2 || data.name.size() > 10) return false;
-    if (data.surname.size() < 2 || data.surname.size() > 10) return false;
-    if (data.last_name.size() < 5 || data.last_name.size() > 15) return false;
-    else return true;
 }
 
 std::string to_lower(std::string str) {
@@ -71,24 +41,24 @@ bool text_to_queue(const std::string& file_name, Queue& q) {
 }
 
 void up_table() {
-    std::cout << "|" << std::format("{:^19}", "Фамилия") << "|"
+    std::cout << "|" << std::format("{:^18}", "Фамилия") << "|"
         << std::format("{:^16}", "Имя") << "|"
         << std::format("{:^20}", "Отчество") << "|"
         << std::format("{:^6}", "Год") << "|"
-        << std::format("{:^50}", "Адрес") << "|"
-        << std::format("{:^26}", "Основное заболевание") << "|"
+        << std::format("{:^52}", "Адрес") << "|"
+        << std::format("{:^25}", "Основное заболевание") << "|"
         << std::format("{:^11}", "Дата п.п.") << "|"
         << "\n"
         << "------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 }
 
 void table_sick_man(const Medical_Record& sick_man) {
-    std::cout << "|" << std::format("{:^19}", sick_man.SNL.surname) << "|"
+    std::cout << "|" << std::format("{:^18}", sick_man.SNL.surname) << "|"
         << std::format("{:^16}", sick_man.SNL.name) << "|"
         << std::format("{:^20}", sick_man.SNL.last_name) << "|"
         << std::format("{:^6}", std::to_string(sick_man.birth_year)) << "|"
-        << std::format("{:^50}", (sick_man.address.city + ", " + sick_man.address.district + ", " + sick_man.address.street + ", " + sick_man.address.building + ", " + sick_man.address.apartment)) << "|"
-        << std::format("{:^26}", sick_man.illness) << "|"
+        << std::format("{:^52}", (sick_man.address.city + ", " + sick_man.address.district + ", " + sick_man.address.street + ", " + sick_man.address.building + ", " + sick_man.address.apartment)) << "|"
+        << std::format("{:^25}", sick_man.illness) << "|"
         << std::format("{:^11}", (std::to_string(sick_man.date.day) + "." + std::to_string(sick_man.date.month) + "." + std::to_string(sick_man.date.year))) << "|"
         << "\n";
 }
@@ -143,10 +113,10 @@ void hand_enter(DoublyLinkedList& list, Medical_Record& temp) {
         std::cin >> temp.date.year;
     }
     //Год рождения
-    std::cout << "Введите год рождения пациента: ";
+    std::cout << "Введите год рождения пациента (совершеннолетний, не старше 100 лет): ";
     std::cin >> temp.birth_year;
-    while (temp.birth_year < 1926 || temp.birth_year > 2026) {
-        std::cout << "\nНекорректный ввод года рождения пациента\n Введите ещё раз: ";
+    while (temp.birth_year < 1926 || temp.birth_year > 2008 || temp.birth_year > temp.date.year - 18) {
+        std::cout << "\nНекорректный ввод года рождения пациента\n Введите ещё раз (совершеннолетний, не старше 100 лет): ";
         std::cin >> temp.birth_year;
     }
     //Болезнь
@@ -172,39 +142,52 @@ int main() {
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
 
-    std::string filename = "patients.txt";
+    std::cout << "Выберите вариант входного файла:\n"
+        << " 1. patients.txt - файл с 12 корректными записями\n"
+        << " 2. empty_file_test.txt - пустой файл для тестирования\n"
+		<< " 3. uncorrect_entry_file_test.txt - файл с 14 некорректными записями\n"
+        << " 4. file_with_DiAbEt.txt - файл с 8 записями о диабете в различных регистрах\n"
+        << " Введите номер: ";
+    int file_choice{};
+    std::cin >> file_choice;
+
+    std::string filename;
+    switch (file_choice) {
+        case 1: filename = "patients.txt"; break;
+        case 2: filename = "empty_file_test.txt"; break;
+        case 3: filename = "uncorrect_entry_file_test.txt"; break;
+		case 4: filename = "file_with_DiAbEt.txt"; break;
+        default: std::cerr << "[Ошибка] Неверный выбор файла! Завершение работы программы\n"; return 2;
+    }
 
     Queue input_queue;
-    std::cout << "1. Чтение данных из файла в первичную очередь...\n";
+    std::cout << "\n1. Чтение данных из файла в первичную очередь...\n";
     if (!text_to_queue(filename, input_queue)) {
-        std::cerr << "[Ошибка] Не удалось загрузить данные в очередь!\n";
-        return 1;
+        std::cerr << "========== Файл пуст! Заполните его перед началом работы!!! Или завершите работу программы ==========\n";
     }
 
     DoublyLinkedList list;
     Medical_Record temp_record;
 
-    std::cout << "\n=== ИСХОДНЫЕ ДАННЫЕ ИЗ ОЧЕРЕДИ (БЕЗ СОРТИРОВКИ) ===\n";
-    up_table();
 
     while (pop_queue(input_queue, temp_record)) {
-        table_sick_man(temp_record);
         push_back(list, temp_record);
     }
 
     int choice{ 0 };
     do {
         std::cout << "\nВыберите вариант работы программы:\n"
-            << " 1. По ФИО\n"
-            << " 2. По году рождения\n"
-            << " 3. По адресу\n"
-            << " 4. По заболеванию\n"
-            << " 5. По дате посещения\n"
+            << " 1. Сортировка по ФИО\n"
+            << " 2. Сортировка по году рождения\n"
+            << " 3. Сортировка по адресу\n"
+            << " 4. Сортировка по заболеванию\n"
+            << " 5. Сортировка по дате посещения\n"
             << " 6. Ручной ввод данных\n"
             << " 7. Удаление записи (начало списка)\n"
             << " 8. Удаление записи (конец списка)\n"
             << " 9. Удаление записи (по индексу)\n"
 			<< " 10. Изменение существующей записи\n"
+			<< " 11. Отобразить актуальный список\n"
             << " 0. Завершить работу\n"
             << " Введите номер: ";
         std::cin >> choice;
@@ -230,13 +213,20 @@ int main() {
 			break;
 		}
 		case 10: change_record(list); break;
+		case 11: std::cout << "\n=== АКТУАЛЬНЫЙ СПИСОК (БЕЗ СОРТИРОВКИ) ===\n"; up_table(); {
+			Node* current = list.head;
+			while (current != nullptr) {
+				table_sick_man(current->data);
+				current = current->next;
+			}
+		} break;
         case 0: std::cout << "\nРабота программы завершена\n"; return 0;
         default:
             std::cerr << "[Ошибка] Неверный выбор!\n";
             clear_list(list);
             return 1;
         }
-    } while (choice == 6 || choice == 7 || choice == 8 || choice == 9 || choice == 10);
+    } while (choice == 6 || choice == 7 || choice == 8 || choice == 9 || choice == 10 || choice == 11);
 
     Queue output_queue;
     Queue diabet_queue;
