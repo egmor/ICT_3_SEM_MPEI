@@ -24,7 +24,7 @@ bool correct_date(Date_Last_Visit& date) {
 }
 
 bool correct_address(Address& data) {
-    if (data.city.size() < 2 || data.city.size() > 10) return false;
+    if (data.city.size() < 2 || data.city.size() > 15) return false;
     if (data.district.size() < 2 || data.district.size() > 10) return false;
     if (data.street.size() < 2 || data.street.size() > 15) return false;
     if (std::stoi(data.building) < 1 || std::stoi(data.building) > 150) return false;
@@ -75,8 +75,8 @@ void up_table() {
         << std::format("{:^16}", "Имя") << "|"
         << std::format("{:^20}", "Отчество") << "|"
         << std::format("{:^6}", "Год") << "|"
-        << std::format("{:^40}", "Адрес") << "|"
-        << std::format("{:^36}", "Основное заболевание") << "|"
+        << std::format("{:^50}", "Адрес") << "|"
+        << std::format("{:^26}", "Основное заболевание") << "|"
         << std::format("{:^11}", "Дата п.п.") << "|"
         << "\n"
         << "------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
@@ -87,8 +87,8 @@ void table_sick_man(const Medical_Record& sick_man) {
         << std::format("{:^16}", sick_man.SNL.name) << "|"
         << std::format("{:^20}", sick_man.SNL.last_name) << "|"
         << std::format("{:^6}", std::to_string(sick_man.birth_year)) << "|"
-        << std::format("{:^40}", (sick_man.address.city + ", " + sick_man.address.district + ", " + sick_man.address.street + ", " + sick_man.address.building + ", " + sick_man.address.apartment)) << "|"
-        << std::format("{:^36}", sick_man.illness) << "|"
+        << std::format("{:^50}", (sick_man.address.city + ", " + sick_man.address.district + ", " + sick_man.address.street + ", " + sick_man.address.building + ", " + sick_man.address.apartment)) << "|"
+        << std::format("{:^26}", sick_man.illness) << "|"
         << std::format("{:^11}", (std::to_string(sick_man.date.day) + "." + std::to_string(sick_man.date.month) + "." + std::to_string(sick_man.date.year))) << "|"
         << "\n";
 }
@@ -104,21 +104,20 @@ bool over_3_months(const Date_Last_Visit& date) {
     return false;
 }
 
-void hand_enter(DoublyLinkedList& list) {
-    Medical_Record temp{};
+void hand_enter(DoublyLinkedList& list, Medical_Record& temp) {
     //ФИО
-    std::cout << "\nВведите ФИО пациента (Имя Фамилия Отчество: ";
-    std::cin >> temp.SNL.name;
+    std::cout << "\nВведите ФИО пациента (Фамилия Имя Отчество): ";
     std::cin >> temp.SNL.surname;
+    std::cin >> temp.SNL.name;
     std::cin >> temp.SNL.last_name;
     while (!correct_name(temp.SNL)) {
         std::cout << "\nНекорректный ввод ФИО пациента\n Введите ещё раз: ";
-        std::cin >> temp.SNL.name;
         std::cin >> temp.SNL.surname;
+        std::cin >> temp.SNL.name;
         std::cin >> temp.SNL.last_name;
     }
     //Адрес
-    std::cout << "\nВведите адрес проживания пациента (город, район, улица, дом, квартира): ";
+    std::cout << "Введите адрес проживания пациента (город, район, улица, дом, квартира): ";
     std::cin >> temp.address.city;
     std::cin >> temp.address.district;
     std::cin >> temp.address.street;
@@ -133,7 +132,7 @@ void hand_enter(DoublyLinkedList& list) {
         std::cin >> temp.address.apartment;
     }
     //Дата последнего посещения
-    std::cout << "\nВведите дату последнего посещения пациента (дд мм гггг): ";
+    std::cout << "Введите дату последнего посещения пациента (дд мм гггг): ";
     std::cin >> temp.date.day;
     std::cin >> temp.date.month;
     std::cin >> temp.date.year;
@@ -144,21 +143,29 @@ void hand_enter(DoublyLinkedList& list) {
         std::cin >> temp.date.year;
     }
     //Год рождения
-    std::cout << "\nВведите год рождения пациента: ";
+    std::cout << "Введите год рождения пациента: ";
     std::cin >> temp.birth_year;
     while (temp.birth_year < 1926 || temp.birth_year > 2026) {
         std::cout << "\nНекорректный ввод года рождения пациента\n Введите ещё раз: ";
         std::cin >> temp.birth_year;
     }
     //Болезнь
-    std::cout << "\nВведите болезнь пациента: ";
+    std::cout << "Введите болезнь пациента: ";
     std::cin >> temp.illness;
+}
 
-    push_back(list, temp);
-
-    Node* last_record = list.tail;
-
-    table_sick_man(last_record->data);
+void change_record(DoublyLinkedList& list) {
+    int index{};
+    std::cout << "\nВведите индекс записи для изменения (1-" << list.size<< "): ";
+    std::cin >> index;
+    Node* node_to_edit = get_node(list, index - 1);
+    if (node_to_edit) {
+        std::cout << "\nТекущая запись:\n";
+        table_sick_man(node_to_edit->data);
+        hand_enter(list, node_to_edit->data);
+        std::cout << "\nИзменённая запись:\n";
+        table_sick_man(node_to_edit->data);
+    }
 }
 
 int main() {
@@ -194,9 +201,15 @@ int main() {
             << " 4. По заболеванию\n"
             << " 5. По дате посещения\n"
             << " 6. Ручной ввод данных\n"
+            << " 7. Удаление записи (начало списка)\n"
+            << " 8. Удаление записи (конец списка)\n"
+            << " 9. Удаление записи (по индексу)\n"
+			<< " 10. Изменение существующей записи\n"
             << " 0. Завершить работу\n"
             << " Введите номер: ";
         std::cin >> choice;
+
+        Medical_Record temp{};
 
         switch (choice) {
         case 1: sort_by_fio(list); break;
@@ -204,14 +217,26 @@ int main() {
         case 3: sort_by_address(list); break;
         case 4: sort_by_illness(list); break;
         case 5: sort_by_date(list); break;
-        case 6: hand_enter(list); break;
+        case 6: hand_enter(list, temp); push_back(list, temp); break;
+		case 7: std::cout << "\nУдаление записи:\n"; table_sick_man(list.head->data); pop_front(list); break;
+		case 8: std::cout << "\nУдаление записи:\n"; table_sick_man(list.tail->data); pop_back(list); break;
+		case 9: {
+			int index{};
+			std::cout << "\nВведите индекс записи для удаления (1-" << list.size << "): ";
+			std::cin >> index;
+            std::cout << "\nУдаление записи:\n";
+			table_sick_man(get_node(list, index - 1)->data);
+			pop_index(list, index - 1);
+			break;
+		}
+		case 10: change_record(list); break;
         case 0: std::cout << "\nРабота программы завершена\n"; return 0;
         default:
             std::cerr << "[Ошибка] Неверный выбор!\n";
             clear_list(list);
             return 1;
         }
-    } while (choice == 6);
+    } while (choice == 6 || choice == 7 || choice == 8 || choice == 9 || choice == 10);
 
     Queue output_queue;
     Queue diabet_queue;
