@@ -1,17 +1,18 @@
 #include "correct.h"
 
-bool correct_day(int day, int month, int year) {
-    if (day > 31 || day < 1) return false;
-    else if (day > 30 && (month == 4 || month == 6 || month == 9 || month == 11)) return false;
-    else if (day > 29 && month == 2 && (year % 4 == 0)) return false;
-    else if (day > 28 && month == 2 && (year % 4 != 0)) return false;
+bool correct_day(Date_Last_Visit date) {
+    if (date.day > 31 || date.day < 1) return false;
+    else if (date.day > 30 && (date.month == 4 || date.month == 6 || date.month == 9 || date.month == 11)) return false;
+    else if (date.day > 29 && date.month == 2 && (date.year % 4 == 0)) return false;
+    else if (date.day > 28 && date.month == 2 && (date.year % 4 != 0 || (date.year % 100 == 0 && date.year % 400 == 0))) return false;
     else return true;
 }
 
-bool correct_date(Date_Last_Visit& date) {
-    if (date.year <= 2000 || date.year > 2026) return false;
-    if (date.month > 12 || date.month < 1) return false;
-    if (!correct_day(date.day, date.month, date.year)) return false;
+bool correct_date(Medical_Record& data) {
+    if (data.date.year <= 2000 || data.date.year > 2026) return false;
+    if (data.date.month > 12 || data.date.month < 1) return false;
+    if (!correct_day(data.date)) return false;
+    if (data.date.year - data.birth_year < 18) return false;
     else return true;
 }
 
