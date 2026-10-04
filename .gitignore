@@ -14,9 +14,6 @@
 *.txt
 *.bin
 *.dat
-*.slnx
-*.vcxproj
-*.vcxproj.filters
 *.res
 *.docx
 *.doc
