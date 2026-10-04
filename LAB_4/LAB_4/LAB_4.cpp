@@ -241,7 +241,6 @@ int main() {
 	// Ввод с клавиатуры
 	try {
 		unsigned int capacityHDD{};
-		char* brandName{};
 		double price{};
 		double monitor_inch{};
 		std::cout << "============================================\n\nHANDLE ENTRY: \n";
@@ -254,7 +253,7 @@ int main() {
 		std::cout << "Enter PC brandname (2 - 30) characters: ";
 		char buffer[31];
 		std::cin.getline(buffer, 31);
-		brandName = buffer;
+		const char* brandName = buffer;
 
 		std::cout << "Enter PC price (30.000 - 900.000 rub): ";
 		std::cin >> price;
