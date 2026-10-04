@@ -4,13 +4,19 @@ class HardDisk {
 private:
 	unsigned int capacityMB;
 
+	void checkCapacity(unsigned int capacity) {
+		if (capacity < 512000) { throw std::invalid_argument("HDD capacity must be >= 500 GB."); }
+		else if (capacity > 30720000) { throw std::invalid_argument("HDD capacity must be <= 30 TB."); }
+	}
+
 public:
-	HardDisk(unsigned int capacity = 4194304) {setCapacity(capacity);} // Стандартный объём HDD в 4 TB (4.194.304 MB)
+
+	HardDisk() : capacityMB(4194304) {} // Конструктор по умолчанию (стандартный объём HDD в 4 TB (4.194.304 MB))
+
+	HardDisk(unsigned int capacity) {setCapacity(capacity);} // Конструктор с параметром (установка объёма HDD)
 
 	void setCapacity(unsigned int capacity) {
-		if (capacity > 31457280) { // Максимальный объём HDD в 30 TB (31.457.280 MB)
-			throw std::invalid_argument("Capacity exceeds maximum limit of 30 TB.");
-		}
+		checkCapacity(capacity);
 		capacityMB = capacity;
 	}
 
@@ -25,6 +31,16 @@ private:
 	char* brand;
 	double price; //Цена в рублях
 
+	void checkBrand(const char* brandName) {
+		if (strlen(brandName) < 2) { throw std::invalid_argument("Brand name must be >= 2 characters."); }
+		else if (strlen(brandName) > 30) { throw std::invalid_argument("Brand name must be <= 30 characters."); }
+	}
+
+	void checkPrice(double priceValue) {
+		if (priceValue < 30000.0) { throw std::invalid_argument("Price must be >= 30.000 rub."); }
+		else if (priceValue > 900000.0) { throw std::invalid_argument("Price must be <= 900.000 rub."); }
+	}
+
 public:
 	Computer() // конструктор по умолчанию
 		: HDD(4194304), brand(nullptr), price(250000.0) {
@@ -38,18 +54,14 @@ public:
 	}
 
 	void setBrand(const char* brandName) {
+		checkBrand(brandName);
 		delete[] brand;
-		if (!brandName || strlen(brandName) < 2) { throw std::invalid_argument("Brand name cannot have less than 2 characters."); }
-		else if (strlen(brandName) > 31) { throw std::invalid_argument("Brand name cannot exceed 30 characters."); }
-		else {
-			brand = new char[strlen(brandName) + 1];
-			strcpy_s(brand, strlen(brandName) + 1, brandName);
-		}
+		brand = new char[strlen(brandName) + 1];
+		strcpy_s(brand, strlen(brandName) + 1, brandName);
 	}
 
 	void setPrice(double priceValue) {
-		if (priceValue < 30000) { throw std::invalid_argument("Price cannot be less than 30,000 rub."); }
-		else if (priceValue > 900000) { throw std::invalid_argument("Price cannot exceed 900,000 rub."); }
+		checkPrice(priceValue);
 		price = priceValue;
 	}
 
@@ -63,7 +75,7 @@ public:
 		std::cout << "\nHDD Capacity: " << HDD.getCapacity() << " MB | " << HDD.getCapacity() / 1024 << " GB | " << HDD.getCapacity() / pow(1024.0, 2.0) << " TB";
 	}
 
-	~Computer() {
+	virtual ~Computer() {
 		delete[] brand;
 	}
 };
@@ -74,6 +86,11 @@ class PublicComputerMonitor : public Computer {
 private:
 	double monitorSize; // Диагональ монитора в дюймах
 
+	void checkMonitorSize(double size) {
+		if (size <= 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
+		else if (size > 50) { throw std::invalid_argument("Monitor size must be <= 50 inches."); }
+	}
+
 public:
 
 	PublicComputerMonitor() : Computer(), monitorSize(27.0) {};
@@ -83,11 +100,8 @@ public:
 		setMonitorSize(monitorSizeValue);
 	}
 
-	~PublicComputerMonitor() {};
-
 	void setMonitorSize(double size) {
-		if (size <= 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
-		else if (size > 50) { throw std::invalid_argument("Monitor size must be <= 50 inches."); }
+		checkMonitorSize(size);
 		monitorSize = size;
 	}
 
@@ -97,6 +111,8 @@ public:
 		Computer::print();
 		std::cout << "\nMonitor Size: " << monitorSize << " inches";
 	}
+
+	~PublicComputerMonitor() {};
 };
 
 //=================================================================================================================
@@ -104,6 +120,11 @@ public:
 class PrivateComputerMonitor : private Computer {
 private:
 	double monitorSize; // Диагональ монитора в дюймах
+
+	void checkMonitorSize(double size) {
+		if (size <= 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
+		else if (size > 50) { throw std::invalid_argument("Monitor size must be <= 50 inches."); }
+	}
 
 public:
 
@@ -114,11 +135,8 @@ public:
 		setMonitorSize(monitorSizeValue);
 	}
 
-	~PrivateComputerMonitor() {};
-
 	void setMonitorSize(double size) {
-		if (size <= 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
-		else if (size > 50) { throw std::invalid_argument("Monitor size must be <= 50 inches."); }
+		checkMonitorSize(size);
 		monitorSize = size;
 	}
 
@@ -128,6 +146,8 @@ public:
 		Computer::print();
 		std::cout << "\nMonitor Size: " << monitorSize << " inches";
 	}
+
+	~PrivateComputerMonitor() {};
 };
 
 //=================================================================================================================
