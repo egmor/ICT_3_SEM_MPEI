@@ -49,7 +49,7 @@ public:
 
 	void setBrand(const char* brandName) {
 		delete[] brand;
-		if (!brandName || strlen(brandName) == 0) { throw std::invalid_argument("Brand name cannot be empty.");}
+		if (!brandName || strlen(brandName) < 2) { throw std::invalid_argument("Brand name cannot have less than 2 characters."); }
 		else if (strlen(brandName) > 31) { throw std::invalid_argument("Brand name cannot exceed 30 characters."); }
 		else {
 			brand = new char[strlen(brandName) + 1];
@@ -90,7 +90,7 @@ public:
 		setMonitorSize(monitorSizeValue);
 	}
 
-	~PublicComputerMonitor() = default;
+	~PublicComputerMonitor() {};
 
 	void setMonitorSize(double size) {
 		if (size <= 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
@@ -118,7 +118,7 @@ public:
 		setMonitorSize(monitorSizeValue);
 	}
 
-	~PrivateComputerMonitor() = default;
+	~PrivateComputerMonitor() {};
 
 	void setMonitorSize(double size) {
 		if (size <= 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
@@ -163,9 +163,26 @@ int main() {
 		std::cout << "Catch exceptions: " << e.what() << "\n\n";
 	}
 
+	// Ошибка бренда
+	try {
+		std::cout << "2. Invalid brand name (< 2 characters): \n";
+		Computer badPc(512000, "A", 100000.0);
+	}
+	catch (const std::exception& e) {
+		std::cout << "Catch exceptions: " << e.what() << "\n\n";
+	}
+
+	try {
+		std::cout << "3. Invalid brand name (> 30 characters): \n";
+		Computer badPc(512000, "International Business Machines Corporation", 100000.0);
+	}
+	catch (const std::exception& e) {
+		std::cout << "Catch exceptions: " << e.what() << "\n\n";
+	}
+
 	// Ошибка цены
 	try {
-		std::cout << "2. Invalid price (< 30.000 rub): \n";
+		std::cout << "4. Invalid price (< 30.000 rub): \n";
 		Computer badPc(512000, "Dell", -100.0);
 	}
 	catch (const std::exception& e) {
@@ -173,7 +190,7 @@ int main() {
 	}
 
 	try {
-		std::cout << "3. Invalid price (> 900.000 rub): \n";
+		std::cout << "5. Invalid price (> 900.000 rub): \n";
 		Computer badPc(512000, "Dell", 1000000.0);
 	}
 	catch (const std::exception& e) {
@@ -182,7 +199,7 @@ int main() {
 
 	// Ошибка монитора
 	try {
-		std::cout << "4. Invalid monitor size (<= 19 inches): \n";
+		std::cout << "6. Invalid monitor size (<= 19 inches): \n";
 		PublicComputerMonitor badMonitor(512000, "Hewlett-Packard", 60000.0, 15.0);
 	}
 	catch (const std::exception& e) {
@@ -190,11 +207,42 @@ int main() {
 	}
 
 	try {
-		std::cout << "5. Invalid monitor size (> 50 inches): \n";
-		PublicComputerMonitor badMonitor(512000, "Hewlett-Packard", 60000.0, 55.0);
+		std::cout << "7. Invalid monitor size (> 50 inches): \n";
+		PrivateComputerMonitor badMonitor(512000, "Hewlett-Packard", 60000.0, 55.0);
 	}
 	catch (const std::exception& e) {
 		std::cout << "Catch exceptions: " << e.what() << "\n\n";
+	}
+
+	// Ввод с клавиатуры
+	try {
+		unsigned int capacityHDD{};
+		char* brandName{};
+		double price{};
+		double monitor_inch{};
+		std::cout << "6. Handle entry: \n";
+		std::cout << "Enter HDD caparcity (500GB - 30TB) in GB: ";
+		std::cin >> capacityHDD;
+		capacityHDD *= 1024; // Переводим в MB
+
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+		std::cout << "Enter PC brandname (2 - 30) characters: ";
+		char buffer[31];
+		std::cin.getline(buffer, 31);
+		brandName = buffer;
+
+		std::cout << "Enter PC price (30.000 - 900.000 rub): ";
+		std::cin >> price;
+
+		std::cout << "Enter monitor size (19 - 50 inches): ";
+		std::cin >> monitor_inch;
+
+		PublicComputerMonitor pc3(capacityHDD, brandName, price, monitor_inch);
+		pc3.print();
+	}
+	catch (const std::exception& e) {
+		std::cout << "Catch last exceptions: " << e.what() << "\n\n";
 	}
 
 	return 0;
