@@ -26,25 +26,15 @@ private:
 	double price; //Цена в рублях
 
 public:
-	Computer(unsigned int hddCapacity = 1048576, const char* brandName = "Acer", double priceValue = 250000.0)
-		: HDD(hddCapacity), brand(nullptr), price(priceValue) {
+	Computer() // конструктор по умолчанию
+		: HDD(4194304), brand(nullptr), price(250000.0) {
+		setBrand("Apple iMac");
+	}
+
+	Computer(unsigned int hddCapacity, const char* brandName, double priceValue) // конструктор с параметрами
+		: HDD(hddCapacity), brand(nullptr){
 		setBrand(brandName);
 		setPrice(priceValue);
-	}
-
-	Computer(const Computer& other)
-		: HDD(other.HDD), brand(nullptr), price(other.price) {
-		setBrand(other.brand);
-		setPrice(other.price);
-	}
-
-	Computer& operator=(const Computer& other) {
-		if (this != &other) {
-			HDD = other.HDD;
-			setBrand(other.brand);
-			setPrice(other.price);
-		}
-		return *this;
 	}
 
 	void setBrand(const char* brandName) {
@@ -85,7 +75,10 @@ private:
 	double monitorSize; // Диагональ монитора в дюймах
 
 public:
-	PublicComputerMonitor(unsigned int hddCapacity = 1048576, const char* brandName = "Lenovo", double priceValue = 100000.0, double monitorSizeValue = 27)
+
+	PublicComputerMonitor() : Computer(), monitorSize(27.0) {};
+
+	PublicComputerMonitor(unsigned int hddCapacity, const char* brandName, double priceValue, double monitorSizeValue)
 		: Computer(hddCapacity, brandName, priceValue), monitorSize(monitorSizeValue) {
 		setMonitorSize(monitorSizeValue);
 	}
@@ -113,7 +106,10 @@ private:
 	double monitorSize; // Диагональ монитора в дюймах
 
 public:
-	PrivateComputerMonitor(unsigned int hddCapacity = 1048576, const char* brandName = "MSI", double priceValue = 100000.0, double monitorSizeValue = 27)
+
+	PrivateComputerMonitor() : Computer(), monitorSize(24.0) {};
+
+	PrivateComputerMonitor(unsigned int hddCapacity, const char* brandName, double priceValue, double monitorSizeValue)
 		: Computer(hddCapacity, brandName, priceValue), monitorSize(monitorSizeValue) {
 		setMonitorSize(monitorSizeValue);
 	}
@@ -137,22 +133,30 @@ public:
 //=================================================================================================================
 
 int main() {
-	std::cout << "Correct data for PC (public and private) monitors:\n";
+	std::cout << "Correct data for PC (public and private) monitors:\n\n============================================\n\n";
 	try {
-		std::cout << "PUBLIC:";
+		std::cout << "PUBLIC (parameters) pc1(2097152, Hewlett - Packard, 220000.00, 27.0).print():";
 		PublicComputerMonitor pc1(2097152, "Hewlett-Packard", 220000.00, 27.0);
 		pc1.print();
-		std::cout << "\n\n";
 
-		std::cout << "PRIVATE:";
-		PrivateComputerMonitor pc2(524288, "International Business Machines", 85000.00, 23.8);
+		std::cout << "\n\nPUBLIC (default) pc2.print():";
+		PublicComputerMonitor pc2;
 		pc2.print();
+		std::cout << "\n\n============================================\n\n";
+
+		std::cout << "PRIVATE (parameters) pc3(524288, International Business Machines, 85000.00, 23.8).print():";
+		PrivateComputerMonitor pc3(524288, "International Business Machines", 85000.00, 23.8);
+		pc3.print();
+
+		std::cout << "\n\nPRIVATE (default) pc4.print():";
+		PrivateComputerMonitor pc4;
+		pc4.print();
 	}
 	catch (const std::exception& e) {
 		std::cerr << e.what() << '\n';
 	}
 
-	std::cout << "\n\nExceptions: \n";
+	std::cout << "\n\n============================================\n\nExceptions: \n\n";
 
 	// Ошибка диска
 	try {
@@ -220,8 +224,8 @@ int main() {
 		char* brandName{};
 		double price{};
 		double monitor_inch{};
-		std::cout << "6. Handle entry: \n";
-		std::cout << "Enter HDD caparcity (500GB - 30TB) in GB: ";
+		std::cout << "============================================\n\nHANDLE ENTRY: \n";
+		std::cout << "Enter HDD capacity (500GB - 30TB) in GB: ";
 		std::cin >> capacityHDD;
 		capacityHDD *= 1024; // Переводим в MB
 
