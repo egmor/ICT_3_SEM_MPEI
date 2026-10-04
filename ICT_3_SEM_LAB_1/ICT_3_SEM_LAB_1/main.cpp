@@ -1,17 +1,25 @@
 ﻿/* =============ПОСТАНОВКА ЗАДАЧИ===================
-Цель работы — написать консольную программу на языке C++, которая обрабатывает сведения о пациентах поликлиники. Данные должны считываться из текстового файла, проверяться на корректность, выводиться в табличном виде, сортироваться и обрабатываться в соответствии с условием варианта 26.
+Цель работы — разработать консольную программу на языке C++, которая обрабатывает сведения о пациентах поликлиники. Данные должны считываться из текстового файла, проверяться на корректность, выводиться в табличном виде, сортироваться и обрабатываться в соответствии с условием варианта 26.
 Задание 26ого варианта:
 Имеются сведения о пациентах поликлиники: ФИО, год рождения, адрес, основное заболевание, дата последнего посещения лечащего врача.
 Определить количество больных диабетом и вывести сведения о больных диабетом, не посещавших лечащего врача более трёх месяцев.
 
-Программа решает следующие задачи:
+В программе используется 4 структуры:
+    1. Структура даты последнего посещения (день, месяц, год) (все данные unsigned int, так как дата не может быть отрицательной)
+    2. Структура адреса (город, район, улица, дом, квартира) (все данные std::string)
+    3. Структура ФИО (все данные std::string)
+    4. Структура мед. книжки (структура ФИО, стуктура адреса, структура д.п.п., unsigned int год рождения, std::string болезнь)
+
+Реализация работы с файлом происходит через std::vector<Medical_Record> - вектор состоящий из структур мед. книжки
+
+
     •	в начале работы пользователю предлагается выбрать входной файл для работы из 4х вариантов (текстовые файлы в формате ANSI):
             1. patients.txt - файл с 12 корректными записями
             2. empty_file_test.txt - пустой файл для тестирования
 		    3. uncorrect_entry_file_test.txt - файл с 14 некорректными записями
             4. file_with_DiAbEt.txt - файл с 8 записями о диабете в различных регистрах
     •	при пустом файле программа полностью завершает свою работу с выводом сообщения об этом
-    •	считывает записи о пациентах из файла в очередь в формате:
+    •	считывает записи о пациентах из файла в std::vector в формате:
             Фамилия, имя, отчество, адрес, дата последнего посещения (дд.мм.гггг), год рождения (гггг);
     •	проверяет данные о последнем посещение на корректность, а именно:
             1.	дата не может быть позже 21.09.2026
@@ -30,7 +38,7 @@
     .	    1.  количество символов в имени не может быть меньше 2 и больше 10
             2.	количество символов в фамилии не может быть меньше 2 и больше 10
             3.  количество символов в отчестве не может быть меньше 5 и больше 15
-    •	записи, которые не прошли проверку не попадают в очередь, кол-во неккоретных записей выводится на экран
+    •	записи, которые не прошли проверку не попадают в std::vector, кол-во неккоретных записей выводится на экран
     •	затем пользователю предлагается 14 вариантов работы программы:
             1. Сортировка по ФИО
             2. Сортировка по году рождения 
@@ -48,18 +56,16 @@
             0. Завершить работу
         (при выборе несуществующего варианта программа завершает свою работу с выводом сообщения об этом)
     •	после выполнения вариантов работы программы с 6 по 13 пользователя повторно просят выбрать один из вариантов работы программы 
-    •	для сортировки очередь переводится в двусвязный список, который сортируется выбранным пользователем способом
-    •	после сортировки двусвязные список преобразуется в 2 очереди:
-            1.	отсортированная очередь всех пациентов
-            2.	очередь, состоящия из пациентов, больных диабетом, которые не посещали поликлинику более 3х месяцев
-    •	обе очереди выводятся в консоль в виде таблицы (сначала отсортированная, потом с диабетиками)
+    •	std::vector сортируется выбранным способом и затем выводятся в консоль 2 списка:
+            1. Отсортированный список пациентов
+            2. Список диабетиков, которых не было в больнице более 3х месяцев
 */
 
 #include "sorting.h"
 #include "correct.h"
 
 namespace Current_Date {
-    constexpr unsigned int day{ 21 };
+    constexpr unsigned int day{ 28 };
     constexpr unsigned int month{ 9 };
     constexpr unsigned int year{ 2026 };
 }
@@ -110,7 +116,7 @@ bool over_3_months(const Date_Last_Visit& date) {
 void file_to_vector(const std::string& filename, std::vector<Medical_Record>& records) {
 	std::ifstream file(filename);
 	if (!file.is_open()) {
-		std::cerr << "Ошибка открытия файла: " << filename << std::endl;
+		std::cerr << "Ошибка открытия файла: " << filename << '\n';
 		return;
 	}
 
@@ -141,7 +147,7 @@ void enter_address(Medical_Record& record) {
     std::cin >> record.address.city >> record.address.district >> record.address.street >> record.address.building >> record.address.apartment;
     while (!correct_address(record.address)) {
         std::cout << "Некорретный ввод адреса. Введите ещё раз: ";
-        std::cin >> record.address.apartment;
+        std::cin >> record.address.city >> record.address.district >> record.address.street >> record.address.building >> record.address.apartment;
     }
 }
 
@@ -186,7 +192,7 @@ void change_record(Medical_Record& record) {
         case 2: {
             std::cout << "Введите год рождения (совершеннолетний, но моложе 100 лет): ";
             std::cin >> record.birth_year;
-            while (record.birth_year - Current_Date::year < 18 || record.birth_year - Current_Date::year >= 100) {
+            while (Current_Date::year - record.birth_year < 18 || Current_Date::year - record.birth_year >= 100) {
                 std::cout << "Некорректный ввод года рождения. Введите ещё раз: ";
                 std::cin >> record.birth_year;
             }
@@ -275,9 +281,9 @@ int main() {
 
         switch (choice) {
         case 1: sort_by_fio(records); break;
-        case 2: sort_by(records, [](const Medical_Record& a, const Medical_Record& b) {return a.birth_year < b.birth_year;});
+        case 2: std::sort(records.begin(), records.end(), [](const Medical_Record& a, const Medical_Record& b) {return a.birth_year < b.birth_year;}); break;
         case 3: sort_by_address(records); break;
-        case 4: sort_by(records, [](const Medical_Record& a, const Medical_Record& b) {return a.illness < b.illness;});
+        case 4: std::sort(records.begin(), records.end(), [](const Medical_Record& a, const Medical_Record& b) {return a.illness < b.illness;}); break;
         case 5: sort_by_date(records); break;
         case 6: hand_enter(temp); records.push_back(temp); std::cout << "\nДобавленная строка: \n"; table_sick_man(temp); break;
         case 7: hand_enter(temp); records.insert(records.begin(), temp); std::cout << "\nДобавленная строка: \n"; table_sick_man(temp);  break;
@@ -324,7 +330,6 @@ int main() {
             break;
         }
 		case 13: std::cout << "\n=== АКТУАЛЬНЫЙ СПИСОК (БЕЗ СОРТИРОВКИ) ===\n"; up_table(); {
-            up_table();
             for (int i{ 0 }; i < records.size(); ++i) {
                 table_sick_man(records[i]);
             }
@@ -342,6 +347,16 @@ int main() {
 	for (int i{ 0 }; i < records.size(); ++i) {
 		table_sick_man(records[i]);
 	}
+
+	int count{ 0 };
+
+	for (int i{ 0 }; i < records.size(); ++i) {
+		if (to_lower(records[i].illness) == "диабет") {
+			++count;
+		}
+	}
+
+	std::cout << "\n\nКоличество больых диабетом: " << count << " чел.";
 
 	std::cout << "\n\n=== СПИСОК БОЛЬНЫХ ДИАБЕТОМ, НЕ ПОСЕЩАВШИХ ПОЛИКЛИНИКУ БОЛЕЕ 3х МЕСЯЦЕВ ===\n";
     up_table();

@@ -15,8 +15,8 @@ void sort_by_address(std::vector<Medical_Record>& records) {
         if (a.address.city == b.address.city) {
             if (a.address.district == b.address.district) {
                 if (a.address.street == b.address.street) {
-                    if (a.address.building == b.address.building) return a.address.building < b.address.building;
-                    return a.address.apartment < b.address.apartment;
+                    if (a.address.building == b.address.building) return a.address.apartment < b.address.apartment;
+                    return a.address.building < b.address.building;
                 }
                 return a.address.street < b.address.street;
             }

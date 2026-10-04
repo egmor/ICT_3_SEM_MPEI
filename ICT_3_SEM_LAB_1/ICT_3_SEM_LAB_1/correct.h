@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <windows.h>
 #include <format>
-#include <utility>
 
 struct Patient {
     std::string name{};
@@ -36,18 +35,6 @@ struct Medical_Record {
     Date_Last_Visit date{};
     unsigned int birth_year{};
     std::string illness{};
-};
-
-struct Node {
-    Medical_Record data;
-    Node* prev{ nullptr };
-    Node* next{ nullptr };
-};
-
-struct DoublyLinkedList {
-    Node* head{ nullptr };
-    Node* tail{ nullptr };
-    int size{ 0 };
 };
 
 bool correct_day(Date_Last_Visit date);
