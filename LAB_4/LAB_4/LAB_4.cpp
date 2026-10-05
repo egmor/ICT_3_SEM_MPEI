@@ -6,7 +6,7 @@ private:
 
 	void checkCapacity(unsigned int capacity) {
 		if (capacity < 512000) { throw std::invalid_argument("HDD capacity must be >= 500 GB."); }
-		else if (capacity > 30720000) { throw std::invalid_argument("HDD capacity must be <= 30 TB."); }
+		else if (capacity > 31457280) { throw std::invalid_argument("HDD capacity must be <= 30 TB."); }
 	}
 
 public:
@@ -33,7 +33,7 @@ private:
 
 	void checkBrand(const char* brandName) {
 		if (strlen(brandName) < 2) { throw std::invalid_argument("Brand name must be >= 2 characters."); }
-		else if (strlen(brandName) > 30) { throw std::invalid_argument("Brand name must be <= 30 characters."); }
+		else if (strlen(brandName) > 31) { throw std::invalid_argument("Brand name must be <= 30 characters."); }
 	}
 
 	void checkPrice(double priceValue) {
@@ -43,7 +43,7 @@ private:
 
 public:
 	Computer() // конструктор по умолчанию
-		: HDD(4194304), brand(nullptr), price(250000.0) {
+		: HDD(), brand(nullptr), price(250000.0) {
 		setBrand("Apple iMac");
 	}
 
@@ -70,6 +70,7 @@ public:
 	double getPrice() const { return price; }
 
 	void print() const {
+		std::cout << "\nComputer Info\n-----------------------";
 		std::cout << "\nBrand: " << brand;
 		std::cout << "\nPrice: " << price << " rub";
 		std::cout << "\nHDD Capacity: " << HDD.getCapacity() << " MB | " << HDD.getCapacity() / 1024 << " GB | " << HDD.getCapacity() / pow(1024.0, 2.0) << " TB";
@@ -87,7 +88,7 @@ private:
 	double monitorSize; // Диагональ монитора в дюймах
 
 	void checkMonitorSize(double size) {
-		if (size <= 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
+		if (size < 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
 		else if (size > 50) { throw std::invalid_argument("Monitor size must be <= 50 inches."); }
 	}
 
@@ -122,7 +123,7 @@ private:
 	double monitorSize; // Диагональ монитора в дюймах
 
 	void checkMonitorSize(double size) {
-		if (size <= 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
+		if (size < 19) { throw std::invalid_argument("Monitor size must be >= 19 inches."); }
 		else if (size > 50) { throw std::invalid_argument("Monitor size must be <= 50 inches."); }
 	}
 
@@ -153,9 +154,19 @@ public:
 //=================================================================================================================
 
 int main() {
-	std::cout << "Correct data for PC (public and private) monitors:\n\n============================================\n\n";
+	std::cout << "Correct data for PC (basic, public and private) monitors:\n\n============================================\n\n";
 	try {
-		std::cout << "PUBLIC (parameters) pc1(2097152, Hewlett - Packard, 220000.00, 27.0).print():";
+		std::cout << "BASIC (parameters) pc0(2097152, DELL, 220000.00).print():";
+		Computer pc0(2097152, "DELL", 220000.00);
+		pc0.print();
+
+
+		std::cout << "\n\nBASIC (default) pc01().print():";
+		Computer pc01;
+		pc01.print();
+		std::cout << "\n\n============================================";
+
+		std::cout << "\n\nPUBLIC (parameters) pc1(2097152, Hewlett - Packard, 220000.00, 27.0).print():";
 		PublicComputerMonitor pc1(2097152, "Hewlett-Packard", 220000.00, 27.0);
 		pc1.print();
 
@@ -240,13 +251,15 @@ int main() {
 
 	// Ввод с клавиатуры
 	try {
-		unsigned int capacityHDD{};
+		double capacityHDD{};
 		double price{};
 		double monitor_inch{};
+
 		std::cout << "============================================\n\nHANDLE ENTRY: \n";
-		std::cout << "Enter HDD capacity (500GB - 30TB) in GB: ";
+		std::cout << "Enter HDD capacity (0.489 - 30) in TB: ";
 		std::cin >> capacityHDD;
-		capacityHDD *= 1024; // Переводим в MB
+		capacityHDD *= pow(1024, 2.0); // Переводим в MB
+		capacityHDD = static_cast<unsigned int>(capacityHDD);
 
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
@@ -263,6 +276,7 @@ int main() {
 
 		PublicComputerMonitor pc3(capacityHDD, brandName, price, monitor_inch);
 		pc3.print();
+		std::cout << "\n";
 	}
 	catch (const std::exception& e) {
 		std::cout << "Catch last exceptions: " << e.what() << "\n\n";
