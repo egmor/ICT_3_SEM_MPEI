@@ -1,28 +1,33 @@
 ﻿#include <iostream>
 #include <limits>
-#include <stdexcept>
-#include <cmath>
 #include <iomanip>
 
 class Double {
 private:
 	double value;
 
-	void checkOverflow(double val) {
+	bool checkOverflow(double val) {
 		if (val > std::numeric_limits<double>::max() || val < -std::numeric_limits<double>::max()) {
+			return false;
+		}
+		return true;
+	}
+
+public:
+	Double() : value(0.0) {}//По умолчанию
+
+	// Конструктор (0 если неверные данные (буквы и т.п.))
+	Double(double val = 0.0) : value(val) {
+		if (!checkOverflow(val)) {
 			throw std::overflow_error("\nOverflow error: value is too large or too small.");
 		}
 	}
 
-public:
-	// Конструктор (0 если неверные данные (буквы и т.п.)
-	Double(double val = 0.0) : value(val) {
-		setValue(val);
-	}
-
 	void setValue(double val) {
-		checkOverflow(val);
-		value = val;
+		if (!checkOverflow(val)) {
+			throw std::overflow_error("\nOverflow error: value is too large or too small.");
+		}
+		else value = val;
 	}
 
 	double getValue() const {
@@ -30,14 +35,18 @@ public:
 	}
 
 	Double& operator++() {//++a
-		checkOverflow(value + 1.0);
+		if (!checkOverflow(value + 1.0)) {
+			throw std::overflow_error("\nOverflow error: value is too large or too small.");
+		}
 		value += 1.0;
 		return *this;
 	}
 
 	Double operator++(int) {//a++
 		Double temp = *this;
-		checkOverflow(value + 1.0);
+		if (!checkOverflow(value + 1.0)) {
+			throw std::overflow_error("\nOverflow error: value is too large or too small.");
+		}
 		value += 1.0;
 		return temp;
 	}
@@ -62,22 +71,27 @@ class Integ {
 private:
 	int number;
 
-	void checkOverflow(int val) {
+	bool checkOverflow(int val) {
 		if (val > std::numeric_limits<int>::max() || val < std::numeric_limits<int>::min()) {
+			return false;
+		}
+		return true;
+	}
+
+public:
+	Integ() : number(0) {}//По умолчанию
+	// Конструктор (0 если неверные данные (буквы и т.п.)
+	Integ(int val = 0) : number(val) {
+		if (!checkOverflow(val)) {
 			throw std::overflow_error("Overflow error: value is too large or too small.");
 		}
 	}
 
-public:
-	Integ() : number(0) {}
-	// Конструктор (0 если неверные данные (буквы и т.п.)
-	Integ(int val = 0) {
-		setValue(val);
-	}
-
 	void setValue(int val) {
-		checkOverflow(val);
-		number = val;
+		if (!checkOverflow(val)) {
+			throw std::overflow_error("Overflow error: value is too large or too small.");
+		}
+		else number = val;
 	}
 
 	int getValue() const {
@@ -86,7 +100,9 @@ public:
 
 	Integ operator+(const Integ& other) {
 		long long res = static_cast<long long>(number) + other.number;
-		checkOverflow(res);
+		if (!checkOverflow(res)) {
+			throw std::overflow_error("Overflow error: value is too large or too small.");
+		}
 		return Integ(static_cast<int>(res));
 	}
 
@@ -110,24 +126,24 @@ int main() {
 	constexpr int LIMIT_INT{ 1000000000 };
 	constexpr double LIMIT_DOUBLE{ 10000000000.0 };
 
-	std::cout << std::fixed << std::setprecision(6);
+	std::cout << std::fixed << std::setprecision(5);
 
 	try {
 		double value1{};
 		double value2{};
 
-		std::cout << "Enter two double values ((-10^10; 10^10) and 6 number after dot):\nValue 1: ";
-		std::cin >> value1;
-		while (value1 > LIMIT_DOUBLE || value1 < -LIMIT_DOUBLE) {
+		std::cout << "Enter two double values ([-10^10; 10^10] and 5 number after dot):\nValue 1: ";
+		while (!(std::cin >> value1) || value1 > LIMIT_DOUBLE || value1 < -LIMIT_DOUBLE) {
 			std::cout << "Uncorrent enter value1. Try again: ";
-			std::cin >> value1;
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		}
 
 		std::cout << "Value 2: ";
-		std::cin >> value2;
-		while (value2 > LIMIT_DOUBLE || value2 < -LIMIT_DOUBLE) {
+		while (!(std::cin >> value2) || value2 > LIMIT_DOUBLE || value2 < -LIMIT_DOUBLE) {
 			std::cout << "Uncorrent enter value2. Try again: ";
-			std::cin >> value2;
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		}
 
 		Double d1(value1);
@@ -142,36 +158,39 @@ int main() {
 		std::cout << "\nd3 = d1 * d2 = ";
 		d3.print();
 
-		std::cout << "\nd1++ = ";
-		d1++;
-		d1.print();
+		std::cout << "\n d1++ = ";
+		//d1++;
+		(d1++).print();
 
 		std::cout << "++d2 = ";
-		++d2;
-		d2.print();
+		//++d2;
+		(++d2).print();
 
-		// Тест для Integ
+		
+		std::cout << "\nEnter two integer values [-10^9; 10^9]:\nValue 1: ";
+		double val1{};
+		double val2{};
 
-
-		std::cout << "\nEnter two integer values:\nValue 1: ";
-		int val1{};
-		int val2{};
-
-		std::cin >> val1;
-		while (val1 > LIMIT_INT || val1 < -LIMIT_INT) {
+		while (!(std::cin >> val1) || static_cast<int>(round(val1)) > LIMIT_INT || static_cast<int>(round(val1) < -LIMIT_INT)) {
 			std::cout << "Uncorrent enter val1. Try again: ";
-			std::cin >> val1;
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		}
+		int int_val1{ static_cast<int>(round(val1)) };
+
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
 		std::cout << "Value 2: ";
-		std::cin >> val2;
-		while (val2 > LIMIT_INT || val2 < -LIMIT_INT) {
+		while (!(std::cin >> val2) || static_cast<int>(round(val2)) > LIMIT_INT || static_cast<int>(round(val2) < -LIMIT_INT)) {
 			std::cout << "Uncorrent enter val2. Try again: ";
-			std::cin >> val2;
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		}
+		int int_val2{ static_cast<int>(round(val2)) };
 
-		Integ i1(val1);
-		Integ i2(val2);
+		Integ i1(int_val1);
+		Integ i2(int_val2);
 
 		std::cout << "\ni1 = ";
 		i1.print();
@@ -193,5 +212,3 @@ int main() {
 
 	return 0;
 }
-
-
