@@ -37,37 +37,36 @@ do
 
     switch (choice)
     {
-        case 1:
+        case 1: 
             records = records.OrderBy(r => (r.Snl.Surname, r.Snl.Name, r.Snl.LastName)).ToList();
-            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО ФИО ===");
+            Console.WriteLine("=== ОТСОРТИРОВАННЫЙ СПИСОК (по ФИО) ===");
             PrintTable(records);
             break;
-        case 2:
-            records = records.OrderBy(r => r.BirthYear).ToList();
-            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО ГОДУ РОЖДЕНИЯ ===");
+        case 2: 
+            records = records.OrderBy(r => r.BirthYear).ToList(); 
+            Console.WriteLine("=== ОТСОРТИРОВАННЫЙ СПИСОК (по году рождения) ===");
             PrintTable(records);
             break;
-        case 3:
+        case 3: 
             records = records.OrderBy(r => (r.Address.City, r.Address.District, r.Address.Street, r.Address.Building, r.Address.Apartment)).ToList();
-            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО АДРЕСУ ===");
+            Console.WriteLine("=== ОТСОРТИРОВАННЫЙ СПИСОК (по адресу) ===");
             PrintTable(records);
             break;
         case 4:
             records = records.OrderBy(r => r.Illness).ToList();
-            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО ЗАБОЛЕВАНИЮ ===");
+            Console.WriteLine("=== ОТСОРТИРОВАННЫЙ СПИСОК (по заболеванию) ===");
             PrintTable(records);
             break;
-        case 5:
+        case 5: 
             records = records.OrderBy(r => (r.Date.Year, r.Date.Month, r.Date.Day)).ToList();
-            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО ДАТЕ ПОСЛЕДНЕГО ПОСЕЩЕНИЯ ===");    
+            Console.WriteLine("=== ОТСОРТИРОВАННЫЙ СПИСОК (по дате посещения) ===");
             PrintTable(records);
             break;
 
         case 6 or 7 or 8:   // в конец / в начало / по индексу (новая запись встанет на позицию idx)
             {
                 int idx = choice == 6 ? records.Count : choice == 7 ? 0 : ReadIndex("для вставки", records.Count + 1) - 1;
-                var rec = new MedicalRecord();
-                Fill(rec, 6);
+                var rec = Fill(new MedicalRecord(), 6);
                 records.Insert(idx, rec);
                 Console.WriteLine("\nДобавленная строка:");
                 PrintRecord(rec);
@@ -89,13 +88,15 @@ do
 
         case 12:
             {
-                var target = records[ReadIndex("изменяемой записи", records.Count) - 1];
+                int idx = ReadIndex("изменяемой записи", records.Count) - 1;
+                var target = records[idx];   // копия структуры
                 Console.WriteLine("\nИзменение записи:");
                 PrintRecord(target);
                 Console.Write("\n" + Menu.Change + "\nВаш выбор: ");
                 int part;
                 while ((part = ReadInt()) is < 0 or > 6) Console.Write("Неверный выбор. Попробуйте снова: ");
-                Fill(target, part);   // 0 — ничего не менять
+                target = Fill(target, part);   // 0 — ничего не менять
+                records[idx] = target;         // записываем изменённую копию обратно
                 if (part != 0) { Console.WriteLine("\nИзменённая строка:"); PrintRecord(target); }
                 break;
             }
@@ -180,8 +181,9 @@ void Enter(string prompt, Action read, Func<bool> ok)
     }
 }
 
-// Ввод полей записи: 1 ФИО, 2 год рождения, 3 адрес, 4 болезнь, 5 дата, 6 — все сразу
-void Fill(MedicalRecord r, int part)
+// Ввод полей записи: 1 ФИО, 2 год рождения, 3 адрес, 4 болезнь, 5 дата, 6 — все сразу.
+// Структура передаётся по значению (копия), поэтому изменённая запись возвращается из функции.
+MedicalRecord Fill(MedicalRecord r, int part)
 {
     if (part is 1 or 6)
         Enter("Введите ФИО (фамилия имя отчество): ",
@@ -195,7 +197,7 @@ void Fill(MedicalRecord r, int part)
 
     if (part is 3 or 6)
         Enter("Введите адрес (город район улица дом квартира): ",
-            () => { var w = ReadWords(5); var a = r.Address; (a.City, a.District, a.Street, a.Building, a.Apartment) = (w[0], w[1], w[2], w[3], w[4]); },
+            () => { var w = ReadWords(5); (r.Address.City, r.Address.District, r.Address.Street, r.Address.Building, r.Address.Apartment) = (w[0], w[1], w[2], w[3], w[4]); },
             () => CorrectAddress(r.Address));
 
     if (part is 4 or 6)
@@ -208,6 +210,8 @@ void Fill(MedicalRecord r, int part)
         Enter("Введите дату последнего посещения (дд мм гггг; не раньше, чем через 18 лет после рождения): ",
             () => { var n = ReadWords(3).Select(Num).ToArray(); (r.Date.Day, r.Date.Month, r.Date.Year) = (n[0], n[1], n[2]); },
             () => CorrectDate(r));
+
+    return r;
 }
 
 // Одна запись в файле = 13 слов (порядок как в исходной программе: имя, фамилия, отчество, ...)
@@ -262,16 +266,18 @@ void PrintTable(IEnumerable<MedicalRecord> list)
 
 // ===================== Типы =====================
 
-class Patient { public string Name = "", Surname = "", LastName = ""; }
-class Address { public string City = "", District = "", Street = "", Building = "", Apartment = ""; }
-class DateLastVisit { public int Day, Month, Year; }
-class MedicalRecord
+// Конструкторы без параметров нужны, чтобы строки в структурах по умолчанию были "", а не null
+struct Patient { public string Name = "", Surname = "", LastName = ""; public Patient() { } }
+struct Address { public string City = "", District = "", Street = "", Building = "", Apartment = ""; public Address() { } }
+struct DateLastVisit { public int Day, Month, Year; }
+struct MedicalRecord
 {
     public Patient Snl = new();
     public Address Address = new();
     public DateLastVisit Date = new();
     public int BirthYear;
     public string Illness = "";
+    public MedicalRecord() { }
 }
 
 static class Menu
@@ -300,7 +306,7 @@ static class Menu
          10. Удаление записи (начало списка)
          11. Удаление записи (по индексу)
          12. Изменение существующей записи
-         13. Основной функционал (подсчёт диабетиков и вывод списка диабетиков, не посещавших поликлинику более 3х месяцев)
+         13. Основной функционал
          0. Завершить работу
         """;
 
