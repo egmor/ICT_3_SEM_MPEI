@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <limits>
 #include <iomanip>
+#include <cmath>
 
 class Double {
 private:
@@ -14,21 +15,15 @@ private:
 	}
 
 public:
-	Double() : value(0.0) {}//По умолчанию
+	//Double() : value(0.0) {}//По умолчанию
 
-	// Конструктор (0 если неверные данные (буквы и т.п.))
 	Double(double val = 0.0) : value(val) {
 		if (!checkOverflow(val)) {
 			throw std::overflow_error("\nOverflow error: value is too large or too small.");
 		}
 	}
 
-	void setValue(double val) {
-		if (!checkOverflow(val)) {
-			throw std::overflow_error("\nOverflow error: value is too large or too small.");
-		}
-		else value = val;
-	}
+
 
 	double getValue() const {
 		return value;
@@ -80,7 +75,7 @@ private:
 
 public:
 	Integ() : number(0) {}//По умолчанию
-	// Конструктор (0 если неверные данные (буквы и т.п.)
+
 	Integ(int val = 0) : number(val) {
 		if (!checkOverflow(val)) {
 			throw std::overflow_error("Overflow error: value is too large or too small.");
@@ -158,20 +153,22 @@ int main() {
 		std::cout << "\nd3 = d1 * d2 = ";
 		d3.print();
 
-		std::cout << "\n d1++ = ";
-		//d1++;
+		std::cout << "\n d1++:\nIn: ";
 		(d1++).print();
+		std::cout << "After: ";
+		d1.print();
 
-		std::cout << "++d2 = ";
-		//++d2;
+		std::cout << "++d2:\nIn: ";
 		(++d2).print();
+		std::cout << "After: ";
+		d2.print();
 
 		
 		std::cout << "\nEnter two integer values [-10^9; 10^9]:\nValue 1: ";
 		double val1{};
 		double val2{};
 
-		while (!(std::cin >> val1) || static_cast<int>(round(val1)) > LIMIT_INT || static_cast<int>(round(val1) < -LIMIT_INT)) {
+		while (!(std::cin >> val1) || val1 > LIMIT_INT || val1 < -LIMIT_INT) {
 			std::cout << "Uncorrent enter val1. Try again: ";
 			std::cin.clear();
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
