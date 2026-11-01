@@ -37,11 +37,31 @@ do
 
     switch (choice)
     {
-        case 1: records = records.OrderBy(r => (r.Snl.Surname, r.Snl.Name, r.Snl.LastName)).ToList(); break;
-        case 2: records = records.OrderBy(r => r.BirthYear).ToList(); break;
-        case 3: records = records.OrderBy(r => (r.Address.City, r.Address.District, r.Address.Street, r.Address.Building, r.Address.Apartment)).ToList(); break;
-        case 4: records = records.OrderBy(r => r.Illness).ToList(); break;
-        case 5: records = records.OrderBy(r => (r.Date.Year, r.Date.Month, r.Date.Day)).ToList(); break;
+        case 1:
+            records = records.OrderBy(r => (r.Snl.Surname, r.Snl.Name, r.Snl.LastName)).ToList();
+            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО ФИО ===");
+            PrintTable(records);
+            break;
+        case 2:
+            records = records.OrderBy(r => r.BirthYear).ToList();
+            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО ГОДУ РОЖДЕНИЯ ===");
+            PrintTable(records);
+            break;
+        case 3:
+            records = records.OrderBy(r => (r.Address.City, r.Address.District, r.Address.Street, r.Address.Building, r.Address.Apartment)).ToList();
+            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО АДРЕСУ ===");
+            PrintTable(records);
+            break;
+        case 4:
+            records = records.OrderBy(r => r.Illness).ToList();
+            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО ЗАБОЛЕВАНИЮ ===");
+            PrintTable(records);
+            break;
+        case 5:
+            records = records.OrderBy(r => (r.Date.Year, r.Date.Month, r.Date.Day)).ToList();
+            Console.WriteLine("\n=== СПИСОК, ОТСОРТИРОВАННЫЙ ПО ДАТЕ ПОСЛЕДНЕГО ПОСЕЩЕНИЯ ===");    
+            PrintTable(records);
+            break;
 
         case 6 or 7 or 8:   // в конец / в начало / по индексу (новая запись встанет на позицию idx)
             {
@@ -81,8 +101,7 @@ do
             }
 
         case 13:
-            Console.WriteLine("\n=== АКТУАЛЬНЫЙ СПИСОК (БЕЗ СОРТИРОВКИ) ===");
-            PrintTable(records);
+            Console.WriteLine("\nОсновной функционал");
             break;
 
         case 0:
@@ -93,10 +112,7 @@ do
             Console.Error.WriteLine("[Ошибка] Неверный выбор!");
             return 1;
     }
-} while (choice is >= 6 and <= 13);
-
-Console.WriteLine("\n\n=== ОТСОРТИРОВАННЫЙ СПИСОК ===");
-PrintTable(records);
+} while (choice != 0 && choice != 13);
 
 Console.Write($"\n\nКоличество больных диабетом: {records.Count(IsDiabetes)} чел.");
 
@@ -284,7 +300,7 @@ static class Menu
          10. Удаление записи (начало списка)
          11. Удаление записи (по индексу)
          12. Изменение существующей записи
-         13. Отобразить актуальный список
+         13. Основной функционал (подсчёт диабетиков и вывод списка диабетиков, не посещавших поликлинику более 3х месяцев)
          0. Завершить работу
         """;
 
