@@ -25,9 +25,6 @@ static class Menu
         Выберите вариант входного файла:
          1. patients.txt - файл с 13 корректными записями
          2. empty_file_test.txt - пустой файл для тестирования
-         3. uncorrect_entry_file_test.txt - файл с 14 некорректными записями
-         4. file_with_DiAbEt.txt - файл с 8 записями о диабете в различных регистрах
-         5. patients_diabetes_types.txt - файл для проверки всех типов диабета
         """;
 
     public const string Main = """
@@ -57,7 +54,9 @@ static class Menu
         3. Адрес проживания
         4. Болезнь
         5. Дата последнего посещения
-        6. Все параметры
+        6. ИМТ
+        7. Гемоглобин
+        8. Все параметры
         0. Ничего
         """;
 }
@@ -149,7 +148,7 @@ class Program
                 case 8:
                     {
                         int idx = choice == 6 ? records.Count : choice == 7 ? 0 : ReadIndex("для вставки", records.Count + 1) - 1;
-                        var rec = Fill(new MedicalRecord(), 6);
+                        var rec = Fill(new MedicalRecord(), 8);
                         records.Insert(idx, rec);
                         Console.WriteLine("\nДобавленная строка:");
                         PrintRecord(rec);
@@ -175,7 +174,7 @@ class Program
                         PrintRecord(target);
                         Console.Write("\n" + Menu.Change + "\nВаш выбор: ");
                         int part;
-                        while ((part = ReadInt()) < 0 || part > 6) Console.Write("Неверный выбор. Попробуйте снова: ");
+                        while ((part = ReadInt()) < 0 || part > 8) Console.Write("Неверный выбор. Попробуйте снова: ");
                         target = Fill(target, part);   // 0 — ничего не менять
                         records[idx] = target;         // записываем изменённую копию обратно
                         if (part != 0) { Console.WriteLine("\nИзменённая строка:"); PrintRecord(target); }
@@ -282,34 +281,44 @@ class Program
         }
     }
 
-    // Ввод полей записи: 1 ФИО, 2 год рождения, 3 адрес, 4 болезнь, 5 дата, 6 — все сразу.
+    // Ввод полей записи: 1 ФИО, 2 год рождения, 3 адрес, 4 болезнь, 5 дата, 6 ИМТ, 7 гемоглобин, 8 — все сразу.
     static MedicalRecord Fill(MedicalRecord r, int part)
     {
-        if (part == 1 || part == 6)
+        if (part == 1 || part == 8)
             Enter("Введите ФИО (фамилия имя отчество): ",
                 () => { var w = ReadWords(3); (r.Snl.Surname, r.Snl.Name, r.Snl.LastName) = (w[0], w[1], w[2]); },
                 () => CorrectName(r.Snl));
 
-        if (part == 2 || part == 6)
+        if (part == 2 || part == 8)
             Enter("Введите год рождения (совершеннолетний, но моложе 100 лет): ",
                 () => r.BirthYear = Num(ReadLine()),
                 () => InRange(Today.Year - r.BirthYear, 18, 99));
 
-        if (part == 3 || part == 6)
+        if (part == 3 || part == 8)
             Enter("Введите адрес (город район улица дом квартира): ",
                 () => { var w = ReadWords(5); (r.Address.City, r.Address.District, r.Address.Street, r.Address.Building, r.Address.Apartment) = (w[0], w[1], w[2], w[3], w[4]); },
                 () => CorrectAddress(r.Address));
 
-        if (part == 4 || part == 6)
+        if (part == 4 || part == 8)
         {
             Console.Write("Введите болезнь: ");
             r.Illness = ReadWords(1)[0];
         }
 
-        if (part == 5 || part == 6)
+        if (part == 5 || part == 8)
             Enter("Введите дату последнего посещения (дд мм гггг; не раньше, чем через 18 лет после рождения): ",
                 () => { var n = ReadWords(3).Select(Num).ToArray(); (r.Date.Day, r.Date.Month, r.Date.Year) = (n[0], n[1], n[2]); },
                 () => CorrectDate(r));
+
+        if (part == 6 || part == 8)
+            Enter("Введите ИМТ (6-100): ",
+                () => r.IBW = double.Parse(ReadLine()),
+                () => CorrectIBW(r));
+
+        if (part == 7 || part == 8)
+            Enter("Введите гемоглобин (3.0-20.0): ",
+                () => r.Hemoglobin = double.Parse(ReadLine()),
+                () => CorrectHemoglobin(r));
 
         return r;
     }
@@ -393,11 +402,11 @@ class Program
     //вычисление типа диабета и степени
     static int DiabetesType(MedicalRecord r)
     {
-        if (r.Hemoglobin >= 5.7 && r.Hemoglobin <= 6.4 && (r.IBW > 25.0 && r.IBW < 29.9)) return 1;   // преддиабет
-        else if (r.Hemoglobin >= 6.5 && r.Hemoglobin <= 6.9 && (r.IBW > 18.5 && r.IBW < 29.9)) return 2;   // лёгкая степень диабета
-        else if (r.Hemoglobin >= 7.0 && r.Hemoglobin <= 8.0 && (r.IBW > 30.0 && r.IBW < 39.9)) return 3;   // средняя степень диабета
+        if (r.Hemoglobin >= 5.7 && r.Hemoglobin <= 6.4 && (r.IBW > 25.0 && r.IBW <= 30.0)) return 1;   // преддиабет
+        else if (r.Hemoglobin >= 6.5 && r.Hemoglobin <= 6.9 && (r.IBW > 18.5 && r.IBW <= 30.0)) return 2;   // лёгкая степень диабета
+        else if (r.Hemoglobin >= 7.0 && r.Hemoglobin <= 8.0 && (r.IBW > 30.0 && r.IBW <= 40.0)) return 3;   // средняя степень диабета
         else if (r.Hemoglobin > 8.0 && r.IBW >= 40.0) return 4;   // тяжёлая степень диабета (с ожирением)
-        else if (r.Hemoglobin >= 8.0 && r.IBW < 18.5) return 5;   // тяжёлая степень диабета (с истощением)
+        else if (r.Hemoglobin >= 8.0 && r.IBW <= 18.5) return 5;   // тяжёлая степень диабета (с истощением)
         else return 0;   // норма при любых других значениях гемоглобина и ИМТ
     }
 }
