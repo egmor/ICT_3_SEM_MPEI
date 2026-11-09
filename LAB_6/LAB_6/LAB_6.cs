@@ -1,7 +1,5 @@
 ﻿using System.Text;
 
-// ===================== Типы =====================
-
 struct Patient { public string Name = "", Surname = "", LastName = ""; public Patient() { } }
 struct Address { public string City = "", District = "", Street = "", Building = "", Apartment = ""; public Address() { } }
 struct DateLastVisit { public int Day, Month, Year; }
@@ -23,7 +21,7 @@ static class Menu
 
     public const string Files = """
         Выберите вариант входного файла:
-         1. patients.txt - файл с 13 корректными записями
+         1. patients.txt - файл с 20 корректными записями
          2. empty_file_test.txt - пустой файл для тестирования
         """;
 
@@ -65,8 +63,7 @@ static class Menu
 
 class Program
 {
-    // «Текущая» дата для задания (раньше была локальной переменной верхнего уровня)
-    static readonly DateTime Today = new DateTime(2026, 9, 28);
+    static readonly DateTime Today = new DateTime(2026, 11, 9);
 
     private static ReadOnlySpan<string> TypesDiabet =>
     new string[]
@@ -108,7 +105,6 @@ class Program
             Console.Write("\n" + Menu.Main + Menu.Ask);
             choice = ReadInt();
 
-            // Удалять и изменять нечего, если список пуст
             if (InRange(choice, 9, 12) && records.Count == 0)
             {
                 Console.Error.WriteLine("\nСписок пуст.");
@@ -143,7 +139,7 @@ class Program
                     PrintTable(records);
                     break;
 
-                case 6:   // в конец / в начало / по индексу (новая запись встанет на позицию idx)
+                case 6: 
                 case 7:
                 case 8:
                     {
@@ -155,7 +151,7 @@ class Program
                         break;
                     }
 
-                case 9:   // конец / начало / по индексу
+                case 9:  
                 case 10:
                 case 11:
                     {
@@ -169,14 +165,14 @@ class Program
                 case 12:
                     {
                         int idx = ReadIndex("изменяемой записи", records.Count) - 1;
-                        var target = records[idx];   // копия структуры
+                        var target = records[idx];   
                         Console.WriteLine("\nИзменение записи:");
                         PrintRecord(target);
                         Console.Write("\n" + Menu.Change + "\nВаш выбор: ");
                         int part;
                         while ((part = ReadInt()) < 0 || part > 8) Console.Write("Неверный выбор. Попробуйте снова: ");
-                        target = Fill(target, part);   // 0 — ничего не менять
-                        records[idx] = target;         // записываем изменённую копию обратно
+                        target = Fill(target, part);   
+                        records[idx] = target;         
                         if (part != 0) { Console.WriteLine("\nИзменённая строка:"); PrintRecord(target); }
                         break;
                     }
@@ -213,8 +209,6 @@ class Program
     }
 
 
-    // ===================== Проверка данных =====================
-
     static bool InRange(int value, int lo, int hi) => value >= lo && value <= hi;
 
     static bool IsDiabetes(MedicalRecord r) => r.Illness.Equals("диабет", StringComparison.OrdinalIgnoreCase);
@@ -243,17 +237,14 @@ class Program
     static bool CorrectIBW(MedicalRecord r) => r.IBW >= 6.0 && r.IBW <= 100.0;
 
 
-    // ===================== Ввод =====================
-
     static string ReadLine() => Console.ReadLine() ?? throw new EndOfStreamException("Ввод завершён");
 
     static string[] Words(string s) => s.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
 
-    static int Num(string s) => int.TryParse(s, out int v) ? v : -1;   // не число -> -1 (не пройдёт проверки)
+    static int Num(string s) => int.TryParse(s, out int v) ? v : -1; 
 
     static int ReadInt() => Num(ReadLine());
 
-    // Строка из ровно n слов; иначе просим повторить
     static string[] ReadWords(int n)
     {
         string[] w;
@@ -269,7 +260,6 @@ class Program
         return i;
     }
 
-    // Выводит приглашение, читает значение и повторяет, пока оно не пройдёт проверку
     static void Enter(string prompt, Action read, Func<bool> ok)
     {
         Console.Write(prompt);
@@ -281,7 +271,6 @@ class Program
         }
     }
 
-    // Ввод полей записи: 1 ФИО, 2 год рождения, 3 адрес, 4 болезнь, 5 дата, 6 ИМТ, 7 гемоглобин, 8 — все сразу.
     static MedicalRecord Fill(MedicalRecord r, int part)
     {
         if (part == 1 || part == 8)
@@ -316,7 +305,7 @@ class Program
                 () => CorrectIBW(r));
 
         if (part == 7 || part == 8)
-            Enter("Введите гемоглобин (3.0-20.0): ",
+            Enter("Введите гемоглобин (3,0-20,0): ",
                 () => r.Hemoglobin = double.Parse(ReadLine()),
                 () => CorrectHemoglobin(r));
 
@@ -350,9 +339,6 @@ class Program
         }
         return list;
     }
-
-
-    // ===================== Вывод таблицы =====================
 
     static void PrintRow(params string[] cells) =>
         PrintRow(new int[] { 18, 16, 20, 6, 52, 25, 11 }, cells);
@@ -398,15 +384,13 @@ class Program
             );
         }
     }
-
-    //вычисление типа диабета и степени
     static int DiabetesType(MedicalRecord r)
     {
-        if (r.Hemoglobin >= 5.7 && r.Hemoglobin <= 6.4 && (r.IBW > 25.0 && r.IBW <= 30.0)) return 1;   // преддиабет
-        else if (r.Hemoglobin >= 6.5 && r.Hemoglobin <= 6.9 && (r.IBW > 18.5 && r.IBW <= 30.0)) return 2;   // лёгкая степень диабета
-        else if (r.Hemoglobin >= 7.0 && r.Hemoglobin <= 8.0 && (r.IBW > 30.0 && r.IBW <= 40.0)) return 3;   // средняя степень диабета
-        else if (r.Hemoglobin > 8.0 && r.IBW >= 40.0) return 4;   // тяжёлая степень диабета (с ожирением)
-        else if (r.Hemoglobin >= 8.0 && r.IBW <= 18.5) return 5;   // тяжёлая степень диабета (с истощением)
-        else return 0;   // норма при любых других значениях гемоглобина и ИМТ
+        if (r.Hemoglobin >= 5.7 && r.Hemoglobin <= 6.4 && (r.IBW > 25.0 && r.IBW <= 30.0)) return 1;   
+        else if (r.Hemoglobin >= 6.5 && r.Hemoglobin <= 6.9 && (r.IBW > 18.5 && r.IBW <= 30.0)) return 2;  
+        else if (r.Hemoglobin >= 7.0 && r.Hemoglobin <= 8.0 && (r.IBW > 30.0 && r.IBW <= 40.0)) return 3;  
+        else if (r.Hemoglobin >= 8.0 && r.IBW >= 40.0) return 4; 
+        else if (r.Hemoglobin >= 8.0 && r.IBW <= 18.5) return 5;  
+        else return 0;  
     }
 }
