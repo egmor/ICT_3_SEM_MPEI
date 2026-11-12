@@ -243,7 +243,7 @@ internal class Program
                     break;
                 case 8:
                     Console.Write("Enter new Monitor size (inches): ");
-                    uint newMonitorSize = uint.Parse(Console.ReadLine());
+                    double newMonitorSize = double.Parse(Console.ReadLine());
                     computerWithMonitor2.MonitorSize = newMonitorSize;
                     break;
                 case 9:
@@ -284,7 +284,7 @@ internal class Program
             {
                 foreach (var monitor in monitors)
                 {
-                    uint totalPrice = hDD.Price + gPU.Price + monitor.Price;
+                    uint totalPrice = hDD.Price + gPU.Price + monitor.Price + 100;
                     if (totalPrice <= budget && hDD.CapacityMB >= minHDDCapacity * 1024 * 1024 && gPU.MemoryGB >= minGPUMemory && monitor.Size >= minMonitorSize)
                     {
                         suitableComputers.Add(new ComputerWithMonitor(hDD.CapacityMB, hDD.DataRateMBps, hDD.Price, gPU.MemoryGB, gPU.Price, "Custom", totalPrice, monitor.Size, monitor.Price));

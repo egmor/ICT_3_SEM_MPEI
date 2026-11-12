@@ -38,9 +38,6 @@ static class Menu
         Выберите вариант входного файла:
          1. patients.txt - основной набор данных
          2. empty_file_test.txt - пустой файл для тестирования
-         3. uncorrect_entry_file_test.txt - файл с некорректными записями
-         4. file_with_DiAbEt.txt - проверка регистра названия заболевания
-         5. patients_diabetes_types.txt - проверка категорий дополнительного задания
         """;
 
     public const string Main = """
@@ -102,8 +99,7 @@ class Program
 
         string[] files =
         {
-            "patients.txt", "empty_file_test.txt", "uncorrect_entry_file_test.txt",
-            "file_with_DiAbEt.txt", "patients_diabetes_types.txt"
+            "patients.txt", "empty_file_test.txt"
         };
 
         Console.Write(Menu.Files + Menu.Ask);
@@ -446,7 +442,6 @@ class Program
 
     static int DiabetesType(MedicalRecord r)
     {
-        // Для пациента без диабета определяется только риск; степень тяжести ему не присваивается.
         if (!IsDiabetes(r))
         {
             if (r.Hemoglobin >= 5.7 && r.Hemoglobin <= 6.4 && r.IBW > 25.0 && r.IBW < 30.0)
@@ -454,7 +449,6 @@ class Program
             return 0;
         }
 
-        // Для пациента с диабетом проверяются только критерии тяжести заболевания.
         if (r.Hemoglobin >= 6.5 && r.Hemoglobin <= 6.9 && r.IBW > 18.5 && r.IBW < 30.0) return 2;
         if (r.Hemoglobin >= 7.0 && r.Hemoglobin <= 8.0 && r.IBW > 30.0 && r.IBW < 40.0) return 3;
         if (r.Hemoglobin > 8.0 && r.IBW >= 40.0) return 4;
